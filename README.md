@@ -4,7 +4,10 @@
 
 代码笔记：https://www.yuque.com/huangzhongqing/qhqqrd/cubgnz
 
-参考自：https://github.com/leggedrobotics/darknet_ros
+参考自：
+
+* https://github.com/leggedrobotics/darknet_ros
+* [https://github.com/TristramAr/catkin_darknet/tree/master/src/detecting_test](https://github.com/TristramAr/catkin_darknet/tree/master/src/detecting_test)
 
 ## Overview
 
