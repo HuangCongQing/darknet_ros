@@ -29,7 +29,7 @@ YoloObjectDetector::YoloObjectDetector(ros::NodeHandle nh)
     : nodeHandle_(nh), imageTransport_(nodeHandle_), numClasses_(0), classLabels_(0), rosBoxes_(0), rosBoxCounter_(0) {
   ROS_INFO("[YoloObjectDetector] Node started.");
 
-  // Read parameters from config file.
+  // Read parameters from config file.  读取公共参数和yolo.yaml中检测物体名称
   if (!readParameters()) {
     ros::requestShutdown();
   }
@@ -110,9 +110,9 @@ void YoloObjectDetector::init() {
     strcpy(detectionNames[i], classLabels_[i].c_str());
   }
 
-  // Load network.
+  // Load network. 设置神经网络并配置网络参数
   setupNetwork(cfg, weights, data, thresh, detectionNames, numClasses_, 0, 0, 1, 0.5, 0, 0, 0, 0);
-  yoloThread_ = std::thread(&YoloObjectDetector::yolo, this);
+  yoloThread_ = std::thread(&YoloObjectDetector::yolo, this);  // 调用yolo函数创建yoloThread_线程
 
   // Initialize publisher and subscriber.
   std::string cameraTopicName;
@@ -247,7 +247,7 @@ bool YoloObjectDetector::publishDetectionImage(const cv::Mat& detectionImage) {
 //   }
 //   return (double) time.tv_sec + (double) time.tv_usec * .000001;
 // }
-
+// 计算网络层数
 int YoloObjectDetector::sizeNetwork(network* net) {
   int i;
   int count = 0;
@@ -260,6 +260,7 @@ int YoloObjectDetector::sizeNetwork(network* net) {
   return count;
 }
 
+// 保留加载的网络
 void YoloObjectDetector::rememberNetwork(network* net) {
   int i;
   int count = 0;
@@ -272,6 +273,7 @@ void YoloObjectDetector::rememberNetwork(network* net) {
   }
 }
 
+// 返回预测框信息
 detection* YoloObjectDetector::avgPredictions(network* net, int* nboxes) {
   int i, j;
   int count = 0;
@@ -286,10 +288,11 @@ detection* YoloObjectDetector::avgPredictions(network* net, int* nboxes) {
       count += l.outputs;
     }
   }
-  detection* dets = get_network_boxes(net, buff_[0].w, buff_[0].h, demoThresh_, demoHier_, 0, 1, nboxes);
+  detection* dets = get_network_boxes(net, buff_[0].w, buff_[0].h, demoThresh_, demoHier_, 0, 1, nboxes); // 返回预测框信息
   return dets;
 }
 
+// 创建目标类别和边框
 void* YoloObjectDetector::detectInThread() {
   running_ = 1;
   float nms = .4;
@@ -365,6 +368,7 @@ void* YoloObjectDetector::detectInThread() {
   return 0;
 }
 
+// 创建获取图片线程调用fetch_thread
 void* YoloObjectDetector::fetchInThread() {
   {
     boost::shared_lock<boost::shared_mutex> lock(mutexImageCallback_);
@@ -379,8 +383,9 @@ void* YoloObjectDetector::fetchInThread() {
   return 0;
 }
 
+// 显示检测结果图片
 void* YoloObjectDetector::displayInThread(void* ptr) {
-  show_image_cv(buff_[(buffIndex_ + 1) % 3], "YOLO V3", ipl_);
+  show_image_cv(buff_[(buffIndex_ + 1) % 3], "YOLO V3", ipl_); // 调用Opencv显示“YOLO V3”图像窗口
   int c = cv::waitKey(waitKeyDelay_);
   if (c != -1) c = c % 256;
   if (c == 27) {
@@ -431,7 +436,7 @@ void YoloObjectDetector::setupNetwork(char* cfgfile, char* weightfile, char* dat
 
 void YoloObjectDetector::yolo() {
   const auto wait_duration = std::chrono::milliseconds(2000);
-  while (!getImageStatus()) {
+  while (!getImageStatus()) {  // 在线程中锁定图片状态，并返回是否接收到图片，当接收到图片时不进入while循环，否则进入循环输出，等待2s后继续判断while条件
     printf("Waiting for image.\n");
     if (!isNodeRunning()) {
       return;
@@ -445,7 +450,7 @@ void YoloObjectDetector::yolo() {
   srand(2222222);
 
   int i;
-  demoTotal_ = sizeNetwork(net_);
+  demoTotal_ = sizeNetwork(net_); // 计算网络层数
   predictions_ = (float**)calloc(demoFrame_, sizeof(float*));
   for (i = 0; i < demoFrame_; ++i) {
     predictions_[i] = (float*)calloc(demoTotal_, sizeof(float));
@@ -487,17 +492,17 @@ void YoloObjectDetector::yolo() {
 
   while (!demoDone_) {
     buffIndex_ = (buffIndex_ + 1) % 3;
-    fetch_thread = std::thread(&YoloObjectDetector::fetchInThread, this);
+    fetch_thread = std::thread(&YoloObjectDetector::fetchInThread, this); 
     detect_thread = std::thread(&YoloObjectDetector::detectInThread, this);
     if (!demoPrefix_) {
       fps_ = 1. / (what_time_is_it_now() - demoTime_);
       demoTime_ = what_time_is_it_now();
       if (viewImage_) {
-        displayInThread(0);
+        displayInThread(0);  // 显示结果图片
       } else {
         generate_image(buff_[(buffIndex_ + 1) % 3], ipl_);
       }
-      publishInThread();
+      publishInThread(); // 广播发布目标检测3个结果：物体类别；预测框长宽；预测框中心点
     } else {
       char name[256];
       sprintf(name, "%s_%08d", demoPrefix_, count);
@@ -511,23 +516,26 @@ void YoloObjectDetector::yolo() {
     }
   }
 }
-
+// 获取ros中msg的header以及将ros格式的图片转换为opencv格式
 IplImageWithHeader_ YoloObjectDetector::getIplImageWithHeader() {
   IplImage* ROS_img = new IplImage(camImageCopy_);
   IplImageWithHeader_ header = {.image = ROS_img, .header = imageHeader_};
   return header;
 }
 
+// 
 bool YoloObjectDetector::getImageStatus(void) {
   boost::shared_lock<boost::shared_mutex> lock(mutexImageStatus_);
   return imageStatus_;
 }
 
+// 
 bool YoloObjectDetector::isNodeRunning(void) {
   boost::shared_lock<boost::shared_mutex> lock(mutexNodeStatus_);
   return isNodeRunning_;
 }
 
+// 广播发布目标检测3个结果：物体类别；预测框长宽；预测框中心点
 void* YoloObjectDetector::publishInThread() {
   // Publish image.
   cv::Mat cvImage = cv::cvarrToMat(ipl_);
