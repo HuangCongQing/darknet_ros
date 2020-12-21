@@ -61,6 +61,7 @@ extern "C" void ipl_into_image(IplImage* src, image im);
 extern "C" image ipl_to_image(IplImage* src);
 extern "C" void show_image_cv(image p, const char* name, IplImage* disp);
 
+// 命名空间
 namespace darknet_ros {
 
 //! Bounding box of the detected object.
