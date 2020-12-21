@@ -4,6 +4,8 @@
 
 代码笔记：https://www.yuque.com/huangzhongqing/qhqqrd/cubgnz
 
+参考自：https://github.com/leggedrobotics/darknet_ros
+
 ## Overview
 
 This is a ROS package developed for object detection in camera images. You only look once (YOLO) is a state-of-the-art, real-time object detection system. In the following ROS package you are able to use YOLO (V3) on GPU and CPU. The pre-trained model of the convolutional neural network is able to detect pre-trained classes including the data set from VOC and COCO, or you can also create a network with your own detection objects. For more information about YOLO, Darknet, available training data and training YOLO see the following link: [YOLO: Real-Time Object Detection](http://pjreddie.com/darknet/yolo/).
@@ -46,11 +48,12 @@ M. Bjelonic
 URL: https://github.com/leggedrobotics/darknet_ros, 2018.
 
 @misc{bjelonicYolo2018,
-  author = {Marko Bjelonic},
-  title = {{YOLO ROS}: Real-Time Object Detection for {ROS}},
-  howpublished = {\url{https://github.com/leggedrobotics/darknet_ros}},
-  year = {2016--2018},
+author = {Marko Bjelonic},
+title = {{YOLO ROS}: Real-Time Object Detection for {ROS}},
+howpublished = {\url{https://github.com/leggedrobotics/darknet_ros}},
+year = {2016--2018},
 }
+
 ## Installation
 
 ### Dependencies
@@ -81,6 +84,7 @@ nvcc fatal : Unsupported gpu architecture 'compute_61'.
 This means that you need to check the compute capability (version) of your GPU. You can find a list of supported GPUs in CUDA here: [CUDA - WIKIPEDIA](https://en.wikipedia.org/wiki/CUDA#Supported_GPUs). Simply find the compute capability of your GPU and add it into darknet_ros/CMakeLists.txt. Simply add a similar line like
 
 -O3 -gencode arch=compute_62,code=sm_62
+
 ### Download weights
 
 The yolo-voc.weights and tiny-yolo-voc.weights are downloaded automatically in the CMakeLists.txt file. If you need to download them again, go into the weights folder and download the two pre-trained weights from the COCO data set:
