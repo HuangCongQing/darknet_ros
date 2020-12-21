@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/hcq/github/ws_darknet/devel/include",
+        "/home/hcq/github/ws_Truck-Perception/devel/include",
+        "/home/hcq/github/ws_academy/devel/include",
+        "/home/hcq/github/ws_object_tracking/devel/include",
+        "/home/hcq/github/ROS/catkin_wp/devel/include",
+        "/opt/ros/melodic/include",
+        "/home/hcq/github/ws_darknet/src/darknet_ros/darknet_ros/include",
+        "/usr/include"
+      ],
+      "name": "Linux"
+    }
+  ]
+}
